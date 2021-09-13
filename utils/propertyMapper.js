@@ -1,8 +1,9 @@
 import * as observer from "./computedStyleObserver";
 
 const CSSHoudiniSupport = (typeof StylePropertyMap != "undefined");
+var registered = false;
 
-if (CSSHoudiniSupport) {
+if (CSSHoudiniSupport && !window.CSSBasePropertiesRegistered) {
   CSS.registerProperty({ name: '--border-left-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
   CSS.registerProperty({ name: '--border-right-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
   CSS.registerProperty({ name: '--border-top-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
@@ -19,10 +20,12 @@ if (CSSHoudiniSupport) {
   CSS.registerProperty({ name: '--padding-box-height', syntax: '<length>', inherits: false, initialValue: `0px`, });
   CSS.registerProperty({ name: '--width', syntax: '<length>', inherits: false, initialValue: `0px`, });
   CSS.registerProperty({ name: '--height', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  console.log("CSS properties registered");
+  window.CSSBasePropertiesRegistered = true;
 }
 
 let convertToUnparsed = (px) => {
-  return new CSSUnparsedValue([`${px.value}px`]);
+  return new CSSUnparsedValue([px.toString()]);
 }
 
 let makePixel = (px) => {
@@ -94,8 +97,9 @@ let applyProperties = (element, computedStyle) => {
     let value = null;
     if (typeof functor == "function") { value = functor(element, computedStyle); };
     if (typeof functor === 'string' || functor instanceof String) { value = convert(computedStyle.getPropertyValue(functor)); };
+
     if (CSSHoudiniSupport && element.attributeStyleMap) {
-      element.attributeStyleMap.set(key, value);
+      element.attributeStyleMap.set(key, convertToUnparsed(value));
     } else {
       element.style.setProperty(key, value);
     }
