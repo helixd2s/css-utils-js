@@ -1,0 +1,16 @@
+{
+  "name": "css-utils",
+  "version": "1.0.0",
+  "description": "Utils for CSS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "css",
+    "utils",
+    "js"
+  ],
+  "author": "helixd2s",
+  "license": "MIT"
+}
