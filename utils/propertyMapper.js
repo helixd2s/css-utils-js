@@ -129,7 +129,9 @@ let updateProperties = (arg, options) => {
       });
       obj.observers.push(observe);
 
-      element.addEventListener("resize", ()=>{
+      let flamer = observer.asyncAnimationFrame();
+      element.addEventListener("resize", async ()=>{
+        await flamer.next();
         applyProperties(element, window.getComputedStyle(element, options.pseudo));
       });
     }

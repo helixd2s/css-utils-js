@@ -108,4 +108,4 @@ class ComputedStyleObserver {
   }
 };
 
-export { ComputedStyleObserver };
+export { ComputedStyleObserver, asyncAnimationFrame };
