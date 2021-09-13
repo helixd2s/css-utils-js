@@ -1,25 +1,30 @@
 import * as observer from "./computedStyleObserver";
+import {Referentiel} from "referentiel";
 
 const CSSHoudiniSupport = (typeof StylePropertyMap != "undefined");
 var registered = false;
 
 if (CSSHoudiniSupport && !window.CSSBasePropertiesRegistered) {
-  CSS.registerProperty({ name: '--border-left-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--border-right-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--border-top-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--border-bottom-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--padding-left', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--padding-right', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--padding-top', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--padding-bottom', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--border-box-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--border-box-height', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--content-box-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--content-box-height', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--padding-box-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--padding-box-height', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--width', syntax: '<length>', inherits: false, initialValue: `0px`, });
-  CSS.registerProperty({ name: '--height', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-left-width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-right-width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-top-width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-bottom-width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-left', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-right', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-top', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-bottom', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-box-width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-box-height', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--content-box-width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--content-box-height', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-box-width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-box-height', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--width', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--height', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--page-x', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--page-y', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-box-mouse-x', syntax: '<length>', inherits: true, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-box-mouse-y', syntax: '<length>', inherits: true, initialValue: `0px`, });
   console.log("CSS properties registered");
   window.CSSBasePropertiesRegistered = true;
 }
@@ -91,18 +96,21 @@ let propMap = {
   "--border-right-width": "border-right-width"
 };
 
+let setStyleProperty = (element, key, value)=>{
+  if (CSSHoudiniSupport && element.attributeStyleMap) {
+    element.attributeStyleMap.set(key, convertToUnparsed(value));
+  } else {
+    element.style.setProperty(key, value);
+  }
+}
+
 let applyProperties = (element, computedStyle) => {
   for (let key in propMap) {
     let functor = propMap[key];
     let value = null;
     if (typeof functor == "function") { value = functor(element, computedStyle); };
     if (typeof functor === 'string' || functor instanceof String) { value = convert(computedStyle.getPropertyValue(functor)); };
-
-    if (CSSHoudiniSupport && element.attributeStyleMap) {
-      element.attributeStyleMap.set(key, convertToUnparsed(value));
-    } else {
-      element.style.setProperty(key, value);
-    }
+    setStyleProperty(element, key, value);
   }
 }
 
@@ -143,4 +151,58 @@ let updateProperties = (arg, options) => {
 
 };
 
-export {updateProperties};
+let documentMouse = {
+  pageX: 0, pageY: 0, listening: false
+};
+
+let listenDocument = () => {
+  if (!documentMouse.listening) {
+    documentMouse.listening = true;
+    document.addEventListener("mousemove", (e)=>{
+      documentMouse.pageX = e.pageX, documentMouse.pageY = e.pageY;
+    }, true);
+
+    let flamer = observer.asyncAnimationFrame();
+    (async()=>{
+      do {
+        setStyleProperty(document.documentElement, "--page-x", makePixel(documentMouse.pageX));
+        setStyleProperty(document.documentElement, "--page-y", makePixel(documentMouse.pageY));
+        await flamer.next();
+      } while(documentMouse.listening);
+    })();
+  };
+
+  return documentMouse;
+}
+
+let listenMouse = (arg, options) => {
+  let elements = [];
+  if (typeof arg === 'string' || arg instanceof String) { elements = document.querySelectorAll(arg); };
+  if (Array.isArray(arg)) { elements = arg; }; 
+  if (isElement(arg)) elements = [arg];
+
+  // 
+  let obj = {
+    listening: true,
+    elements: elements,
+    observers: []
+  };
+
+  listenDocument();
+
+  let flamer = observer.asyncAnimationFrame();
+  (async()=>{
+    do {
+      elements.forEach((element)=>{
+        let point = Referentiel.convertPointFromPageToNode(element, [documentMouse.pageX, documentMouse.pageY]);
+        setStyleProperty(element, "--padding-box-mouse-x", makePixel(point[0]));
+        setStyleProperty(element, "--padding-box-mouse-y", makePixel(point[1]));
+      });
+      await flamer.next();
+    } while(obj.listening);
+  })();
+
+  return obj;
+}
+
+export {updateProperties, listenMouse, documentMouse};
