@@ -1,6 +1,6 @@
-import CSObserver from "./utils/computedStyleObserver"
-import PropertyMapper from "./utils/propertyMapper"
+import * as CSObserver from "./utils/computedStyleObserver"
+import * as PropertyMapper from "./utils/propertyMapper"
 
-export default {
+export {
   CSObserver, PropertyMapper
 };

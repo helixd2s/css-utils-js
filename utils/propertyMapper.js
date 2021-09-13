@@ -1,16 +1,36 @@
-import observer from "./computedStyleObserver";
+import * as observer from "./computedStyleObserver";
 
+const CSSHoudiniSupport = (typeof StylePropertyMap != "undefined");
+
+if (CSSHoudiniSupport) {
+  CSS.registerProperty({ name: '--border-left-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-right-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-top-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-bottom-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-left', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-right', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-top', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-bottom', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-box-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--border-box-height', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--content-box-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--content-box-height', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-box-width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--padding-box-height', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--width', syntax: '<length>', inherits: false, initialValue: `0px`, });
+  CSS.registerProperty({ name: '--height', syntax: '<length>', inherits: false, initialValue: `0px`, });
+}
 
 let convertToUnparsed = (px) => {
   return new CSSUnparsedValue([`${px.value}px`]);
 }
 
 let makePixel = (px) => {
-  return px && px != "auto" ? (typeof CSS != "undefined" ? CSS.px(px) : `${px}px`) : (typeof CSS != "undefined" ? new CSSUnparsedValue([`auto`]) : `auto`);
+  return px && px != "auto" ? (CSSHoudiniSupport ? CSS.px(px) : `${px}px`) : (CSSHoudiniSupport ? new CSSUnparsedValue([`auto`]) : `auto`);
 }
 
 let convert = (px) => {
-  return px && px != "auto" ? (typeof CSSNumericValue.parse != "undefined" ? CSSNumericValue.parse(px) : px) : (typeof CSS != "undefined" ? new CSSUnparsedValue([`auto`]) : `auto`);
+  return px && px != "auto" ? (CSSHoudiniSupport ? CSSNumericValue.parse(px) : px) : (CSSHoudiniSupport ? new CSSUnparsedValue([`auto`]) : `auto`);
 }
 
 //Returns true if it is a DOM node
@@ -74,8 +94,8 @@ let applyProperties = (element, computedStyle) => {
     let value = null;
     if (typeof functor == "function") { value = functor(element, computedStyle); };
     if (typeof functor === 'string' || functor instanceof String) { value = convert(computedStyle.getPropertyValue(functor)); };
-    if (element.attributeStyleMap) {
-      element.attributeStyleMap.set(key, convertToUnparsed(value));
+    if (CSSHoudiniSupport && element.attributeStyleMap) {
+      element.attributeStyleMap.set(key, value);
     } else {
       element.style.setProperty(key, value);
     }
@@ -111,4 +131,4 @@ let updateProperties = (arg, options) => {
 
 };
 
-export default {updateProperties};
+export {updateProperties};

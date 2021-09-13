@@ -108,4 +108,4 @@ class ComputedStyleObserver {
   }
 };
 
-export default { ComputedStyleObserver };
+export { ComputedStyleObserver };
