@@ -34,6 +34,8 @@ Currently allows to use such vars from CSS, if you set by JS.
     --border-right-width
     --border-top-width
     --border-bottom-width
+    --width
+    --height
   */
 }
 ```
