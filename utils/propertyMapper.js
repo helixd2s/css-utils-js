@@ -123,17 +123,19 @@ let updateProperties = (arg, options) => {
     let computedStyle = window.getComputedStyle(element, options.pseudo);
     applyProperties(element, computedStyle);
     if (options.observe) {
-      let observe = new observer.ComputedStyleObserver(element, options.pseudo, ["padding-left", "padding-right", "border-top-width", "border-bottom-width", "border-left-width", "border-right-width"]);
+      let observe = new observer.ComputedStyleObserver(element, options.pseudo, ["width", "height", "padding-left", "padding-right", "border-top-width", "border-bottom-width", "border-left-width", "border-right-width"]);
       observe.addListener((entry)=>{
         applyProperties(element, entry.computed);
       });
       obj.observers.push(observe);
-
+      
+      /*
       let flamer = observer.asyncAnimationFrame();
       element.addEventListener("resize", async ()=>{
         await flamer.next();
         applyProperties(element, window.getComputedStyle(element, options.pseudo));
       });
+      */
     }
   });
   
