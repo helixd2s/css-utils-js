@@ -1,5 +1,8 @@
 # Scripted utils for CSS
 
+## 💬 [Обсуждения/Discussions](https://github.com/helixd2s/about/discussions) 💬
+## 🐞 [Баг-Репорты/Bug-Tracker](https://github.com/helixd2s/about/issues) 🐞
+
 I made JS and SCSS utils for CSS developers. 
 
 ```js
